@@ -1,0 +1,183 @@
+<html>
+<head>
+
+<!-- https://github.com/MrRio/jsPDF -->
+<script src="jquery.min.js"></script>
+<script src="jsPDF/jspdf.js"></script>
+<script src="FileSaver.js/FileSaver.js"></script>
+
+
+</head>
+<body>
+
+<form>
+Secret to code :<br>
+<input type="text" id="secretString" name="secret" size="50"><br>
+Area size :<br>
+<input type="number" id="areaWidth" value="60" style="width:100px">mm *
+<input type="number" id="areaHeight" value="50" style="width:100px">mm<br>
+Area offset :<br>
+<input type="number" id="leftOffset" value="50" style="width:100px"> mm from the left.
+<input type="number" id="topOffset" value="50" style="width:100px"><br> mm from the top.
+<br>
+<input id="generateButton" type="button" name="generate" value="generate">
+</form>
+
+
+<object class="preview-pane" data="" type="application/pdf" width="1000" height="800">
+</object>
+
+
+<!--<a href="#" class="download-pdf">Download PDF</a>-->
+</body>
+<footer>
+<script type="text/javascript">
+
+
+  var secretString = "Kik0Oo+58:)$YtrfD5Z\"ty4tKik0Oo+58:)$YtrfD5Z\"ty4t%";
+  generateDoc(secretString, 50, 50, 60, 50);
+
+
+
+  $('#generateButton').click(function()
+  {
+    var secretString = $('#secretString').val();
+
+    var width = Number($('#areaWidth').val());
+    var height = Number($('#areaHeight').val());
+    var top = Number($('#topOffset').val());
+    var left = Number($('#leftOffset').val());
+
+    generateDoc(secretString, left, top, width, height);
+
+  });
+
+
+
+  function generateDoc(secretString, left, top, width, height)
+  {
+    var doc = new jsPDF();
+
+
+    //60*50mm of total space
+    //All the sizes are in mm
+    var areaWidth = width;
+    var areaHeight = height;
+
+    var offsetLeft = left;
+    var offsetTop = top;
+
+    var backMargin = 20;
+
+
+
+
+    //I we got enough space we don't reduce the size
+    var tmp = (areaWidth*areaHeight)/secretString.length;
+    tmp = Math.sqrt(tmp);
+
+    var symbolSize = Math.floor(tmp);
+    //alert(symbolSize);
+
+    var symbolWidth = symbolSize;
+    var symbolHeight = symbolSize;
+
+    var nbrSymbPerLines = Math.floor(areaWidth/symbolSize);
+
+
+
+    //Create the string
+    for (i = 0; i < secretString.length; i++) {
+
+      var currentLineNumber = Math.floor(i/nbrSymbPerLines);
+      var currentSymbInLineNumber = (i%nbrSymbPerLines);
+
+      var currentSymbPosX = offsetLeft+(symbolWidth*currentSymbInLineNumber);
+      var currentSymbPosY = offsetTop+(symbolHeight*currentLineNumber);
+
+      newSymbol(doc, currentSymbPosX, currentSymbPosY, symbolWidth, symbolHeight, secretString.substring(i, i+1));
+    }
+
+
+
+
+    doc.addPage('a4','p');
+    doc.setFillColor(0, 0, 0);
+    //doc.rect( 210-offsetLeft-areaWidth, offsetTop, areaWidth, areaHeight, 'F');
+    doc.rect( 210-offsetLeft-areaWidth-backMargin, offsetTop-backMargin, areaWidth+(2*backMargin), areaHeight+(2*backMargin), 'F');
+
+
+
+
+    var string = doc.output('bloburi');
+
+    //$('.preview-pane').attr('src', string);
+    $('.preview-pane').attr('data', string);
+
+    //doc.save('bob.pdf');
+  }
+
+
+  function newSymbol(doc, posx, posy, symbolWidth, symbolHeight, symbol)
+  {
+    var textMarginLeft = 0;
+    var textMarginBottom = 0;
+
+    var squareSymbolWidth = symbolWidth/5;
+    var squareSymbolHeight = symbolHeight/5;
+
+
+    //Create the global boxe of the symbole
+    doc.setDrawColor(0, 0, 0);
+    doc.rect(posx, posy, symbolWidth, symbolHeight, 'D');
+
+
+    //Create the type symbolique
+    if( (symbol >='a') && (symbol <='z') )  //lower case
+    {
+      doc.setFillColor(0, 0, 0);
+      doc.rect( (posx + ((symbolWidth - squareSymbolWidth)/2)) , (posy + symbolHeight - squareSymbolHeight), squareSymbolWidth, squareSymbolHeight, 'F');
+
+      textMarginLeft = 0.4*symbolWidth;
+      textMarginBottom = 0.3*symbolHeight;
+    }
+    else if( (symbol >='A') && (symbol <='Z') ) //upper case
+    {
+
+      doc.setFillColor(0, 0, 0);
+      doc.rect( (posx + ((symbolWidth - squareSymbolWidth)/2)) , posy, squareSymbolWidth, squareSymbolHeight, 'F');
+
+      textMarginLeft = 0.25*symbolWidth;
+      textMarginBottom = 0.2*symbolHeight;
+    }
+    else if( (symbol >='0') && (symbol <='9') ) //numbers
+    {
+      doc.setFillColor(0, 0, 0);
+      doc.rect( (posx + symbolWidth - squareSymbolWidth) , posy, squareSymbolWidth, squareSymbolHeight, 'F');
+
+      textMarginLeft = 0.35*symbolWidth;
+      textMarginBottom = 0.2*symbolHeight;
+    }
+    else    //symboles
+    {
+      doc.setFillColor(0, 0, 0);
+      doc.rect(posx, posy, squareSymbolWidth, squareSymbolHeight, 'F');
+
+      textMarginLeft = 0.2*symbolWidth;
+      textMarginBottom = 0.2*symbolHeight;
+    }
+
+    //Print the symbol it self
+    doc.setFont("helvetica");
+    doc.setFontType("bold");
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(symbolHeight*2);
+    doc.text(posx+textMarginLeft, posy + symbolHeight - textMarginBottom, symbol);
+
+
+  }
+
+
+</script>
+</footer>
+</html>
